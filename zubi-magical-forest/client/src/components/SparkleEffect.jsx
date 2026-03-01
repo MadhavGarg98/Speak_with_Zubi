@@ -4,15 +4,15 @@ const SparkleEffect = ({ active }) => {
   if (!active) return null;
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
-      {[...Array(8)].map((_, i) => (
+    <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 5 }}>
+      {Array.from({ length: 10 }, (_, i) => (
         <div
           key={i}
-          className="absolute w-2 h-2 bg-goldAccent rounded-full animate-sparkle"
+          className="sparkle-dot"
           style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 1.5}s`,
+            left: `${15 + Math.random() * 70}%`,
+            top: `${15 + Math.random() * 70}%`,
+            animationDelay: `${Math.random() * 0.8}s`,
           }}
         />
       ))}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function CountdownRing({ duration, onComplete, isActive }) {
+export default function CountdownRing({ duration, isActive }) {
   const [timeLeft, setTimeLeft] = useState(duration);
 
   useEffect(() => {
@@ -9,43 +9,49 @@ export default function CountdownRing({ duration, onComplete, isActive }) {
       return;
     }
 
-    if (timeLeft <= 0) {
-      onComplete();
-      return;
-    }
+    if (timeLeft <= 0) return;
 
     const timer = setTimeout(() => {
       setTimeLeft(timeLeft - 1);
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [timeLeft, isActive, duration, onComplete]);
+  }, [timeLeft, isActive, duration]);
 
-  const radius = 42; // Adjusted for 96px container
+  const size = 88;
+  const strokeWidth = 3;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   const progress = (timeLeft / duration) * circumference;
 
   return (
-    <svg width="96" height="96" className="transform -rotate-90 absolute inset-0">
+    <svg
+      width={size}
+      height={size}
+      className="orb-countdown-ring"
+      style={{ transform: 'rotate(-90deg)' }}
+    >
+      {/* Background track */}
       <circle
-        cx="48"
-        cy="48"
+        cx={size / 2}
+        cy={size / 2}
         r={radius}
-        stroke="rgba(244, 201, 93, 0.2)"
-        strokeWidth="4"
+        stroke="rgba(244, 201, 93, 0.15)"
+        strokeWidth={strokeWidth}
         fill="transparent"
       />
+      {/* Progress arc */}
       <circle
-        cx="48"
-        cy="48"
+        cx={size / 2}
+        cy={size / 2}
         r={radius}
         stroke="#F4C95D"
-        strokeWidth="4"
+        strokeWidth={strokeWidth}
         fill="transparent"
         strokeDasharray={circumference}
         strokeDashoffset={circumference - progress}
         strokeLinecap="round"
-        className="transition-all duration-1000 ease-linear"
+        style={{ transition: 'stroke-dashoffset 1s linear' }}
       />
     </svg>
   );
