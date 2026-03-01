@@ -1,13 +1,16 @@
 import React, { useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, RotateCcw } from 'lucide-react';
 
 const ConversationPanel = ({
   messages,
   isAiSpeaking,
+  isProcessing,
   timeRemaining,
   conversationActive,
+  sessionEnded,
   onStart,
+  onRestart,
 }) => {
   const messagesEndRef = useRef(null);
 
@@ -21,8 +24,16 @@ const ConversationPanel = ({
     return `${mins}:${String(secs).padStart(2, '0')}`;
   };
 
+  const showStartScreen = !conversationActive && !sessionEnded && messages.length === 0;
+  const showEndScreen = sessionEnded && !conversationActive;
+
   return (
-    <div className="conversation-panel">
+    <motion.div
+      className="conversation-panel"
+      initial={{ opacity: 0, x: 40 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
       {/* Header */}
       <div className="panel-header">
         <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -31,7 +42,7 @@ const ConversationPanel = ({
           </div>
           <div className="panel-info">
             <div className="panel-name">Zubi Buddy</div>
-            <div className="panel-subtitle">Magical Guide</div>
+            <div className="panel-subtitle">Magical Forest Guide</div>
           </div>
         </div>
         <div className="panel-session-time">
@@ -40,19 +51,66 @@ const ConversationPanel = ({
         </div>
       </div>
 
-      {/* Conversation content */}
-      {!conversationActive && messages.length === 0 ? (
+      {showStartScreen ? (
         /* Empty / initial state */
         <div className="panel-empty-state">
-          <div style={{ opacity: 0.15 }}>
-            <Sparkles style={{ width: 48, height: 48, color: '#F4C95D' }} />
-          </div>
+          <motion.div
+            className="empty-state-icon"
+            animate={{
+              scale: [1, 1.08, 1],
+              rotate: [0, 5, -5, 0],
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Sparkles style={{ width: 56, height: 56, color: '#F4C95D' }} />
+          </motion.div>
+          <div className="empty-state-heading">Ready for an Adventure?</div>
           <p className="empty-state-text">
-            Press Start to begin your magical forest adventure.
+            Explore the magical forest with Zubi, your friendly AI companion. Speak and discover wonders together.
           </p>
-          <button className="btn-start-adventure" onClick={onStart}>
+          <motion.button
+            className="btn-start-adventure"
+            onClick={onStart}
+            whileHover={{ scale: 1.05, y: -3 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <span className="btn-start-sparkle" />
             Start Adventure
-          </button>
+          </motion.button>
+        </div>
+      ) : showEndScreen ? (
+        /* Session ended state */
+        <div className="panel-empty-state">
+          <motion.div
+            initial={{ scale: 0, rotate: -180 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+            className="empty-state-icon"
+          >
+            <Sparkles style={{ width: 56, height: 56, color: '#F4C95D' }} />
+          </motion.div>
+          <div className="empty-state-heading">Adventure Complete!</div>
+          <p className="empty-state-text">
+            Great job exploring the magical forest! Ready for another round?
+          </p>
+
+          {/* Show recent messages summary */}
+          {messages.length > 0 && (
+            <div className="session-summary">
+              <span className="summary-count">{messages.filter(m => m.sender === 'user').length}</span>
+              <span className="summary-label">messages exchanged</span>
+            </div>
+          )}
+
+          <motion.button
+            className="btn-start-adventure btn-restart"
+            onClick={onRestart}
+            whileHover={{ scale: 1.05, y: -3 }}
+            whileTap={{ scale: 0.97 }}
+          >
+            <RotateCcw style={{ width: 16, height: 16, marginRight: 8 }} />
+            New Adventure
+          </motion.button>
         </div>
       ) : (
         <>
@@ -62,32 +120,34 @@ const ConversationPanel = ({
               {messages.map((message, index) => (
                 <motion.div
                   key={index}
-                  initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                  initial={{ opacity: 0, y: 16, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: -8, scale: 0.97 }}
-                  transition={{ duration: 0.3, delay: 0.05 }}
+                  transition={{ duration: 0.35, delay: 0.05, ease: [0.22, 1, 0.36, 1] }}
                   className={`message-row ${message.sender}`}
                 >
+                  {message.sender === 'ai' && (
+                    <div className="message-avatar-mini">
+                      <Sparkles style={{ width: 10, height: 10, color: '#081410' }} />
+                    </div>
+                  )}
                   <div className={`message-bubble ${message.sender}`}>
                     <p style={{ margin: 0 }}>{message.text}</p>
-                    {message.sender === 'ai' && (
-                      <div className="message-sender">
-                        <Sparkles style={{ width: 10, height: 10 }} />
-                        <span>Zubi</span>
-                      </div>
-                    )}
                   </div>
                 </motion.div>
               ))}
             </AnimatePresence>
 
-            {/* Typing indicator */}
-            {isAiSpeaking && (
+            {/* Typing / processing indicator */}
+            {(isAiSpeaking || isProcessing) && (
               <motion.div
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="message-row ai"
               >
+                <div className="message-avatar-mini">
+                  <Sparkles style={{ width: 10, height: 10, color: '#081410' }} />
+                </div>
                 <div className="typing-indicator">
                   <div className="typing-dot" />
                   <div className="typing-dot" />
@@ -100,20 +160,12 @@ const ConversationPanel = ({
           </div>
 
           {/* Footer hint */}
-          <div style={{
-            textAlign: 'center',
-            color: 'rgba(244, 201, 93, 0.3)',
-            fontSize: 11,
-            fontWeight: 500,
-            letterSpacing: '0.3px',
-            flexShrink: 0,
-            paddingTop: 8,
-          }}>
-            Press the orb to talk with Zubi
+          <div className="panel-footer-hint">
+            {conversationActive ? 'Press the orb to talk with Zubi' : 'Session ended'}
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 };
 

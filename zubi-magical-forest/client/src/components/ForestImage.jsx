@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import SparkleEffect from "./SparkleEffect";
 
-export default function ForestImage({ highlighted }) {
+export default function ForestImage({ highlighted, conversationActive }) {
   const [portalIntensified, setPortalIntensified] = useState(false);
 
   useEffect(() => {
@@ -27,10 +28,24 @@ export default function ForestImage({ highlighted }) {
     waterfall: { top: '25%', left: '85%' },
   };
 
+  // Ambient lanterns
+  const lanterns = useMemo(() => [
+    { top: '38%', left: '28%', delay: 0 },
+    { top: '33%', left: '53%', delay: 1 },
+    { top: '43%', left: '70%', delay: 2.2 },
+    { top: '55%', left: '15%', delay: 3.5 },
+    { top: '28%', left: '82%', delay: 1.7 },
+  ], []);
+
   return (
-    <div className="image-panel">
+    <motion.div
+      className="image-panel"
+      initial={{ opacity: 0, x: -40 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+    >
       {/* Portal glow behind the image */}
-      <div className={`image-portal-glow ${portalIntensified ? 'intensified' : ''}`} />
+      <div className={`image-portal-glow ${portalIntensified ? 'intensified' : ''} ${conversationActive ? 'active' : ''}`} />
 
       <div className="image-container">
         <img
@@ -39,6 +54,9 @@ export default function ForestImage({ highlighted }) {
           crossOrigin="anonymous"
         />
 
+        {/* Ambient mist overlay */}
+        <div className="image-mist-overlay" />
+
         {/* Inner glow overlay */}
         <div className="image-inner-glow" />
 
@@ -46,24 +64,34 @@ export default function ForestImage({ highlighted }) {
         <div className="image-border-highlight" />
 
         {/* Lantern flickers */}
-        <div className="lantern-glow" style={{ top: '40%', left: '30%' }} />
-        <div className="lantern-glow" style={{ top: '35%', left: '55%', animationDelay: '1s' }} />
-        <div className="lantern-glow" style={{ top: '45%', left: '72%', animationDelay: '2.2s' }} />
+        {lanterns.map((l, i) => (
+          <div
+            key={i}
+            className="lantern-glow"
+            style={{ top: l.top, left: l.left, animationDelay: `${l.delay}s` }}
+          />
+        ))}
 
         {/* Highlight circle for identified objects */}
-        {highlighted && highlightPositions[highlighted] && (
-          <div
-            className="highlight-circle"
-            style={{
-              top: highlightPositions[highlighted].top,
-              left: highlightPositions[highlighted].left,
-              transform: 'translate(-50%, -50%)',
-            }}
-          />
-        )}
+        <AnimatePresence>
+          {highlighted && highlightPositions[highlighted] && (
+            <motion.div
+              className="highlight-circle"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 1.5, opacity: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              style={{
+                top: highlightPositions[highlighted].top,
+                left: highlightPositions[highlighted].left,
+                transform: 'translate(-50%, -50%)',
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         <SparkleEffect active={!!highlighted} />
       </div>
-    </div>
+    </motion.div>
   );
 }

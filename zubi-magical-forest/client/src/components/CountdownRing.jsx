@@ -1,28 +1,23 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 
-export default function CountdownRing({ duration, isActive }) {
-  const [timeLeft, setTimeLeft] = useState(duration);
+export default function CountdownRing({ duration, timeLeft, isActive }) {
+  const prevTimeRef = useRef(timeLeft);
 
   useEffect(() => {
-    if (!isActive) {
-      setTimeLeft(duration);
-      return;
-    }
+    prevTimeRef.current = timeLeft;
+  }, [timeLeft]);
 
-    if (timeLeft <= 0) return;
-
-    const timer = setTimeout(() => {
-      setTimeLeft(timeLeft - 1);
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [timeLeft, isActive, duration]);
-
-  const size = 88;
+  const size = 96;
   const strokeWidth = 3;
   const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const progress = (timeLeft / duration) * circumference;
+  const progress = isActive ? (timeLeft / duration) * circumference : circumference;
+
+  // Color transitions from gold to red as time runs out
+  const timePercent = timeLeft / duration;
+  let strokeColor = '#F4C95D';
+  if (timePercent < 0.25) strokeColor = '#ef5350';
+  else if (timePercent < 0.5) strokeColor = '#ffab40';
 
   return (
     <svg
@@ -36,7 +31,7 @@ export default function CountdownRing({ duration, isActive }) {
         cx={size / 2}
         cy={size / 2}
         r={radius}
-        stroke="rgba(244, 201, 93, 0.15)"
+        stroke="rgba(244, 201, 93, 0.1)"
         strokeWidth={strokeWidth}
         fill="transparent"
       />
@@ -45,13 +40,16 @@ export default function CountdownRing({ duration, isActive }) {
         cx={size / 2}
         cy={size / 2}
         r={radius}
-        stroke="#F4C95D"
+        stroke={strokeColor}
         strokeWidth={strokeWidth}
         fill="transparent"
         strokeDasharray={circumference}
         strokeDashoffset={circumference - progress}
         strokeLinecap="round"
-        style={{ transition: 'stroke-dashoffset 1s linear' }}
+        style={{
+          transition: 'stroke-dashoffset 1s linear, stroke 0.5s ease',
+          filter: timePercent < 0.25 ? 'drop-shadow(0 0 4px rgba(239, 83, 80, 0.5))' : 'none',
+        }}
       />
     </svg>
   );

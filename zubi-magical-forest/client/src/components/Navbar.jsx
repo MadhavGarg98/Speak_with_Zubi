@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { Trees } from "lucide-react";
 
 export default function Navbar({ aiSpeaking, conversationActive, timeLeft, onEnd, onClear }) {
@@ -9,29 +10,62 @@ export default function Navbar({ aiSpeaking, conversationActive, timeLeft, onEnd
   };
 
   return (
-    <nav className="navbar">
+    <motion.nav
+      className="navbar"
+      initial={{ opacity: 0, y: -20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+    >
       <div className="navbar-brand">
         <div className="navbar-icon">
           <Trees style={{ width: 20, height: 20, color: '#FDF6E3' }} />
         </div>
-        <span className="navbar-title">Zubi Magical Forest</span>
+        <div className="navbar-brand-text">
+          <span className="navbar-title">Zubi Magical Forest</span>
+          <span className="navbar-tagline">AI Adventure</span>
+        </div>
       </div>
 
       <div className="navbar-controls">
         <div className="live-badge">
-          <div className={`live-dot ${aiSpeaking ? 'speaking' : ''}`} />
+          <div className={`live-dot ${aiSpeaking ? 'speaking' : conversationActive ? '' : 'offline'}`} />
           <span>{aiSpeaking ? 'SPEAKING' : conversationActive ? 'LIVE' : 'READY'}</span>
         </div>
 
         {conversationActive && (
-          <span className="navbar-timer">{formatTime(timeLeft)}</span>
+          <motion.span
+            className={`navbar-timer ${timeLeft <= 10 ? 'urgent' : ''}`}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            key="timer"
+          >
+            {formatTime(timeLeft)}
+          </motion.span>
         )}
 
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="btn-end" onClick={onEnd}>End</button>
-          <button className="btn-clear" onClick={onClear}>Clear</button>
+        <div className="navbar-btn-group">
+          {conversationActive && (
+            <motion.button
+              className="btn-end"
+              onClick={onEnd}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              End
+            </motion.button>
+          )}
+          <motion.button
+            className="btn-clear"
+            onClick={onClear}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            Clear
+          </motion.button>
         </div>
       </div>
-    </nav>
+    </motion.nav>
   );
 }

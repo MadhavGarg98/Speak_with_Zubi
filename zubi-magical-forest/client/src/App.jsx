@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import ForestImage from "./components/ForestImage";
 import ConversationPanel from "./components/ConversationPanel";
 import MicOrb from "./components/MicOrb";
@@ -14,9 +14,15 @@ function App() {
   const [timeLeft, setTimeLeft] = useState(TOTAL_TIME);
   const [highlighted, setHighlighted] = useState(null);
   const [conversationActive, setConversationActive] = useState(false);
+  const [voiceLevel, setVoiceLevel] = useState(0);
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
+  const audioContextRef = useRef(null);
+  const analyserRef = useRef(null);
+  const animFrameRef = useRef(null);
+  const streamRef = useRef(null);
 
   // Timer logic
   useEffect(() => {
@@ -25,7 +31,7 @@ function App() {
         setTimeLeft((prev) => prev - 1);
       }, 1000);
     } else if (timeLeft === 0 && conversationActive) {
-      endConversation();
+      handleEndConversation();
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -49,12 +55,69 @@ function App() {
 
       recognitionRef.current.onerror = () => {
         setListening(false);
+        stopAudioAnalyser();
       };
 
       recognitionRef.current.onend = () => {
         setListening(false);
+        stopAudioAnalyser();
       };
     }
+
+    return () => {
+      stopAudioAnalyser();
+    };
+  }, []);
+
+  // Audio analyser for voice level
+  const startAudioAnalyser = useCallback(async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      audioContextRef.current = audioContext;
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      analyserRef.current = analyser;
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+      const tick = () => {
+        analyser.getByteFrequencyData(dataArray);
+        // Compute average volume from frequency data
+        let sum = 0;
+        for (let i = 0; i < dataArray.length; i++) {
+          sum += dataArray[i];
+        }
+        const avg = sum / dataArray.length;
+        // Normalize to 0-1
+        setVoiceLevel(Math.min(avg / 128, 1));
+        animFrameRef.current = requestAnimationFrame(tick);
+      };
+      tick();
+    } catch {
+      // Mic access denied
+      setVoiceLevel(0);
+    }
+  }, []);
+
+  const stopAudioAnalyser = useCallback(() => {
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current);
+      animFrameRef.current = null;
+    }
+    if (audioContextRef.current) {
+      audioContextRef.current.close().catch(() => {});
+      audioContextRef.current = null;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current = null;
+    }
+    setVoiceLevel(0);
   }, []);
 
   const speak = (text) => {
@@ -94,7 +157,7 @@ function App() {
       }
 
       speak(data.text);
-    } catch (error) {
+    } catch {
       const errorMessage = {
         sender: "ai",
         text: "Oops! Something went wrong. Can you try again?",
@@ -108,6 +171,7 @@ function App() {
 
   const startConversation = () => {
     setConversationActive(true);
+    setSessionEnded(false);
     setTimeLeft(TOTAL_TIME);
     setMessages([]);
 
@@ -119,26 +183,38 @@ function App() {
     speak(welcomeMessage.text);
   };
 
-  const endConversation = () => {
+  const handleEndConversation = useCallback(() => {
     setConversationActive(false);
     setListening(false);
     setAiSpeaking(false);
     setHighlighted(null);
+    setSessionEnded(true);
+    stopAudioAnalyser();
+    window.speechSynthesis.cancel();
 
     const goodbyeMessage = {
       sender: "ai",
       text: "Thank you for exploring with me! Bye bye for now!",
     };
     setMessages((prev) => [...prev, goodbyeMessage]);
-    speak(goodbyeMessage.text);
-  };
+  }, [stopAudioAnalyser]);
 
   const clearConversation = () => {
-    setMessages([]);
+    window.speechSynthesis.cancel();
+    setConversationActive(false);
+    setListening(false);
+    setAiSpeaking(false);
     setHighlighted(null);
-    if (conversationActive) {
-      endConversation();
-    }
+    setMessages([]);
+    setTimeLeft(TOTAL_TIME);
+    setSessionEnded(false);
+    stopAudioAnalyser();
+  };
+
+  const restartConversation = () => {
+    setSessionEnded(false);
+    setMessages([]);
+    startConversation();
   };
 
   const toggleListening = () => {
@@ -149,27 +225,43 @@ function App() {
 
     if (listening) {
       recognitionRef.current?.stop();
+      stopAudioAnalyser();
     } else {
       recognitionRef.current?.start();
       setListening(true);
+      startAudioAnalyser();
     }
   };
 
   // Generate floating particles with stable positions
   const particles = useMemo(
     () =>
-      Array.from({ length: 14 }, (_, i) => ({
+      Array.from({ length: 20 }, (_, i) => ({
         id: i,
         left: `${5 + Math.random() * 90}%`,
         duration: `${18 + Math.random() * 14}s`,
         delay: `${Math.random() * 20}s`,
-        size: Math.random() > 0.6 ? 3 : 2,
+        size: Math.random() > 0.5 ? 3 : 2,
+        glow: Math.random() > 0.7,
+      })),
+    []
+  );
+
+  // Fireflies
+  const fireflies = useMemo(
+    () =>
+      Array.from({ length: 8 }, (_, i) => ({
+        id: i,
+        left: `${10 + Math.random() * 80}%`,
+        top: `${20 + Math.random() * 60}%`,
+        duration: `${4 + Math.random() * 6}s`,
+        delay: `${Math.random() * 5}s`,
       })),
     []
   );
 
   return (
-    <div style={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+    <div className="app-root">
       {/* Cinematic background */}
       <div className="bg-cinematic" />
       <div className="bg-image-glow" />
@@ -178,7 +270,7 @@ function App() {
       {particles.map((p) => (
         <div
           key={p.id}
-          className="particle"
+          className={`particle ${p.glow ? 'particle-glow' : ''}`}
           style={{
             left: p.left,
             width: p.size,
@@ -189,27 +281,44 @@ function App() {
         />
       ))}
 
+      {/* Fireflies */}
+      {fireflies.map((f) => (
+        <div
+          key={`ff-${f.id}`}
+          className="firefly"
+          style={{
+            left: f.left,
+            top: f.top,
+            '--ff-duration': f.duration,
+            '--ff-delay': f.delay,
+          }}
+        />
+      ))}
+
       {/* Navbar */}
       <Navbar
         aiSpeaking={aiSpeaking}
         conversationActive={conversationActive}
         timeLeft={timeLeft}
-        onEnd={endConversation}
+        onEnd={handleEndConversation}
         onClear={clearConversation}
       />
 
       {/* Main two-column grid */}
       <main className="main-grid">
         {/* Left Column: Forest Image */}
-        <ForestImage highlighted={highlighted} />
+        <ForestImage highlighted={highlighted} conversationActive={conversationActive} />
 
         {/* Right Column: Conversation Panel */}
         <ConversationPanel
           messages={messages}
           isAiSpeaking={aiSpeaking}
+          isProcessing={processing}
           timeRemaining={timeLeft}
           conversationActive={conversationActive}
+          sessionEnded={sessionEnded}
           onStart={startConversation}
+          onRestart={restartConversation}
         />
       </main>
 
@@ -222,6 +331,7 @@ function App() {
           timeLeft={timeLeft}
           isActive={conversationActive}
           aiSpeaking={aiSpeaking}
+          voiceLevel={voiceLevel}
         />
       )}
     </div>
