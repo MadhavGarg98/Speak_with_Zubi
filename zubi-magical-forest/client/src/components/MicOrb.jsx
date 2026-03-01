@@ -77,6 +77,34 @@ export default function MicOrb({ listening, onClick, duration, timeLeft, isActiv
           </>
         )}
 
+        {/* Volume ring that fills while listening */}
+        {listening && (
+          <svg className="orb-volume-ring" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="rgba(244, 201, 93, 0.2)"
+              strokeWidth="2"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="45"
+              fill="none"
+              stroke="rgba(244, 201, 93, 0.8)"
+              strokeWidth="2"
+              strokeDasharray={`${2 * Math.PI * 45}`}
+              strokeDashoffset={`${2 * Math.PI * 45 * (1 - voiceLevel)}`}
+              transform="rotate(-90 50 50)"
+              style={{
+                transition: 'stroke-dashoffset 0.1s ease-out',
+              }}
+            />
+          </svg>
+        )}
+
         {/* Countdown ring */}
         <CountdownRing duration={duration} timeLeft={timeLeft} isActive={isActive} />
 
