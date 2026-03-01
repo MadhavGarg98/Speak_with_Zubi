@@ -38,50 +38,136 @@ const ConversationPanel = ({ messages, isAiSpeaking, timeRemaining, highlighted 
   };
 
   return (
-    <div className={`conversation-panel chat-panel-enhanced rounded-[28px] p-7 flex flex-col h-full relative scroll-fade-top scroll-fade-bottom ${shouldPulse ? 'message-bubble-pulse' : ''}`}>
+    <div style={{
+      background: 'linear-gradient(135deg, rgba(15, 26, 22, 0.75), rgba(26, 71, 42, 0.35))',
+      backdropFilter: 'blur(25px)',
+      border: '1px solid rgba(232, 197, 71, 0.12)',
+      boxShadow: '0 10px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(232, 197, 71, 0.08)',
+      borderRadius: '24px',
+      padding: '24px',
+      display: 'flex',
+      flexDirection: 'column',
+      height: '100%',
+      position: 'relative'
+    }} className={shouldPulse ? 'message-bubble-pulse' : ''}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-full bg-gradient-to-br from-goldAccent to-yellow-400 flex items-center justify-center ${isAiSpeaking ? 'ai-avatar-breathing' : ''}`}>
-            <Sparkles className="w-7 h-7 text-forestDark" />
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '20px',
+        paddingBottom: '16px',
+        borderBottom: '1px solid rgba(232, 197, 71, 0.08)'
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '12px'
+        }}>
+          <div style={{
+            width: '44px',
+            height: '44px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle at 30% 30%, #f5d96b, #e8c547, #d4b23a)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 0 20px rgba(232, 197, 71, 0.4)',
+            animation: isAiSpeaking ? 'avatarBreathe 3s ease-in-out infinite' : 'none'
+          }}>
+            <Sparkles style={{width: '24px', height: '24px', color: '#0f1a16'}} />
           </div>
           <div>
-            <h2 className="text-creamText font-semibold text-xl">Zubi Forest Buddy</h2>
-            <p className="text-goldAccent text-sm opacity-80">Your magical guide 🌲</p>
+            <h2 style={{
+              color: '#f8f9fa',
+              fontWeight: 600,
+              fontSize: '16px',
+              margin: 0,
+              letterSpacing: '-0.3px'
+            }}>Zubi Buddy</h2>
+            <p style={{
+              color: '#e8c547',
+              fontSize: '12px',
+              opacity: 0.7,
+              margin: '4px 0 0 0',
+              letterSpacing: '0.3px'
+            }}>Magical Guide ✨</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full ${isAiSpeaking ? 'bg-green-400 animate-pulse shadow-lg shadow-green-400/50' : 'bg-gray-400'} `} />
-          <span className="text-creamText text-sm font-medium">
-            {formatTime(timeRemaining)}
-          </span>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          color: '#b8c1ba',
+          fontSize: '12px'
+        }}>
+          <div style={{
+            width: '6px',
+            height: '6px',
+            borderRadius: '50%',
+            background: isAiSpeaking ? '#ef5350' : 'rgba(232, 197, 71, 0.3)',
+            animation: isAiSpeaking ? 'pulse 2s ease-in-out infinite' : 'none',
+            boxShadow: isAiSpeaking ? '0 0 8px rgba(239, 83, 80, 0.4)' : 'none'
+          }} />
+          <span>{formatTime(timeRemaining)}</span>
         </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto space-y-4 mb-4 pr-2 custom-scrollbar-enhanced">
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        marginBottom: '12px',
+        paddingRight: '8px'
+      }} className="custom-scrollbar-enhanced">
         <AnimatePresence>
           {messages.map((message, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              initial={{ opacity: 0, y: 12, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.95 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              className={`flex ${message.sender === 'ai' ? 'justify-start' : 'justify-end'}`}
+              exit={{ opacity: 0, y: -12, scale: 0.96 }}
+              transition={{ duration: 0.35, delay: index * 0.08 }}
+              style={{
+                display: 'flex',
+                justifyContent: message.sender === 'ai' ? 'flex-start' : 'flex-end'
+              }}
             >
               <div
-                className={`max-w-[80%] p-4 rounded-2xl transition-all duration-300 hover:scale-[1.02] ${
-                  message.sender === 'ai'
-                    ? 'bg-gradient-to-br from-forestMid to-forestDark text-creamText rounded-tl-none shadow-lg'
-                    : 'bg-gradient-to-br from-goldAccent to-yellow-400 text-forestDark rounded-tr-none shadow-lg'
-                }`}
+                style={{
+                  maxWidth: '85%',
+                  padding: '12px 16px',
+                  borderRadius: '16px',
+                  transition: 'all 0.3s ease',
+                  background: message.sender === 'ai' 
+                    ? 'rgba(45, 95, 63, 0.4)' 
+                    : 'linear-gradient(135deg, #e8c547, #f5d96b)',
+                  color: message.sender === 'ai' ? '#f8f9fa' : '#0f1a16',
+                  borderBottomLeftRadius: message.sender === 'ai' ? '4px' : '16px',
+                  borderBottomRightRadius: message.sender === 'ai' ? '16px' : '4px',
+                  boxShadow: message.sender === 'ai'
+                    ? '0 4px 16px rgba(0, 0, 0, 0.2)'
+                    : '0 4px 16px rgba(232, 197, 71, 0.2)',
+                  fontSize: '13px',
+                  lineHeight: '1.5',
+                  wordWrap: 'break-word'
+                }}
               >
-                <p className="text-sm leading-relaxed">{message.text}</p>
+                <p style={{margin: 0}}>{message.text}</p>
                 {message.sender === 'ai' && (
-                  <div className="flex items-center gap-2 mt-3">
-                    <Heart className="w-3 h-3 text-goldAccent animate-pulse" />
-                    <span className="text-xs text-goldAccent/80 font-medium">Zubi</span>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    marginTop: '8px',
+                    fontSize: '10px',
+                    color: '#e8c547'
+                  }}>
+                    <Heart style={{width: '12px', height: '12px', animation: 'pulse 2s ease-in-out infinite'}} />
+                    <span style={{fontWeight: 500}}>Zubi</span>
                   </div>
                 )}
               </div>
@@ -91,15 +177,31 @@ const ConversationPanel = ({ messages, isAiSpeaking, timeRemaining, highlighted 
         
         {isTyping && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            className="flex justify-start"
+            style={{display: 'flex', justifyContent: 'flex-start'}}
           >
-            <div className="bg-gradient-to-br from-forestMid to-forestDark text-creamText p-4 rounded-2xl rounded-tl-none shadow-lg">
-              <div className="flex gap-1">
-                <div className="w-2 h-2 bg-goldAccent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-goldAccent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-goldAccent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+            <div style={{
+              background: 'rgba(45, 95, 63, 0.4)',
+              color: '#f8f9fa',
+              padding: '12px 16px',
+              borderRadius: '16px',
+              borderBottomLeftRadius: '4px',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.2)'
+            }}>
+              <div style={{display: 'flex', gap: '4px', alignItems: 'center'}}>
+                {[0, 1, 2].map(i => (
+                  <div
+                    key={i}
+                    style={{
+                      width: '6px',
+                      height: '6px',
+                      background: '#e8c547',
+                      borderRadius: '50%',
+                      animation: `bounce 1.4s ease-in-out ${i * 0.2}s infinite`
+                    }}
+                  />
+                ))}
               </div>
             </div>
           </motion.div>
@@ -109,8 +211,14 @@ const ConversationPanel = ({ messages, isAiSpeaking, timeRemaining, highlighted 
       </div>
 
       {/* Footer hint */}
-      <div className="text-center text-goldAccent/60 text-xs font-medium">
-        Press the magic orb to talk with Zubi ✨
+      <div style={{
+        textAlign: 'center',
+        color: 'rgba(232, 197, 71, 0.4)',
+        fontSize: '11px',
+        fontWeight: 500,
+        letterSpacing: '0.3px'
+      }}>
+        Press the orb to talk with Zubi ✨
       </div>
     </div>
   );

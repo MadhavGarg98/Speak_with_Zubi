@@ -1,6 +1,6 @@
 .app {
   min-height: 100vh;
-  background: radial-gradient(circle at 50% 20%, #1F4D3A, #0C1F17);
+  background: linear-gradient(135deg, #0f1a16 0%, #1a2622 50%, #0f1a16 100%);
   position: relative;
   overflow: hidden;
   display: flex;
@@ -9,9 +9,9 @@
 
 .header {
   padding: 20px 40px;
-  background: rgba(12, 31, 23, 0.8);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 216, 107, 0.1);
+  background: rgba(15, 26, 22, 0.75);
+  backdrop-filter: blur(25px);
+  border-bottom: 1px solid rgba(232, 197, 71, 0.12);
 }
 
 .header-content {
@@ -24,34 +24,39 @@
 
 .title {
   font-size: 24px;
-  font-weight: 600;
-  color: #FFD86B;
+  font-weight: 700;
+  color: #e8c547;
   margin: 0;
-  text-shadow: 0 0 20px rgba(255, 216, 107, 0.5);
+  text-shadow: 0 0 16px rgba(232, 197, 71, 0.3);
+  letter-spacing: -0.5px;
 }
 
 .live-indicator {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #FFD86B;
+  color: #b8c1ba;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 13px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .live-dot {
-  width: 8px;
-  height: 8px;
-  background: #FF4444;
+  width: 7px;
+  height: 7px;
+  background: #ef5350;
   border-radius: 50%;
-  animation: pulse 2s infinite;
+  animation: pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1);
+  box-shadow: 0 0 8px rgba(239, 83, 80, 0.5);
 }
 
 .timer {
-  color: #FFD86B;
+  color: #e8c547;
   font-weight: 600;
-  font-size: 16px;
+  font-size: 15px;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.3px;
 }
 
 .main-content {
@@ -86,17 +91,18 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 216, 107, 0.1);
+  background: rgba(232, 197, 71, 0.08);
   border-radius: 3px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 216, 107, 0.3);
+  background: rgba(232, 197, 71, 0.25);
   border-radius: 3px;
+  transition: all 0.3s ease;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 216, 107, 0.5);
+  background: rgba(232, 197, 71, 0.45);
 }
 
 @media (max-width: 1024px) {
