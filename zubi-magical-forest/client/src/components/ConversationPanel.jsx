@@ -37,8 +37,12 @@ const ConversationPanel = ({
       {/* Header */}
       <div className="panel-header">
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div className={`panel-avatar ${isAiSpeaking ? 'breathing' : ''}`}>
-            <Sparkles style={{ width: 20, height: 20, color: '#081410' }} />
+          <div className={`panel-avatar ${isAiSpeaking ? 'ai-speaking' : ''}`}>
+            <img 
+              src="/blue-elephant-avatar.svg" 
+              alt="Zubi Buddy" 
+              style={{ width: 36, height: 36, borderRadius: '50%' }}
+            />
           </div>
           <div className="panel-info">
             <div className="panel-name">Zubi Buddy</div>
@@ -128,7 +132,20 @@ const ConversationPanel = ({
                 >
                   {message.sender === 'ai' && (
                     <div className="message-avatar-mini">
-                      <Sparkles style={{ width: 10, height: 10, color: '#081410' }} />
+                      <img 
+                        src="/blue-elephant-avatar.svg" 
+                        alt="Zubi" 
+                        style={{ width: 32, height: 32, borderRadius: '50%' }}
+                      />
+                    </div>
+                  )}
+                  {message.sender === 'user' && (
+                    <div className="message-avatar-mini">
+                      <img 
+                        src="/person-avatar.svg" 
+                        alt="You" 
+                        style={{ width: 32, height: 32, borderRadius: '50%' }}
+                      />
                     </div>
                   )}
                   <div className={`message-bubble ${message.sender}`}>
@@ -146,7 +163,11 @@ const ConversationPanel = ({
                 className="message-row ai"
               >
                 <div className="message-avatar-mini">
-                  <Sparkles style={{ width: 10, height: 10, color: '#081410' }} />
+                  <img 
+                    src="/blue-elephant-avatar.svg" 
+                    alt="Zubi" 
+                    style={{ width: 32, height: 32, borderRadius: '50%' }}
+                  />
                 </div>
                 <div className="typing-indicator">
                   <div className="typing-dot" />

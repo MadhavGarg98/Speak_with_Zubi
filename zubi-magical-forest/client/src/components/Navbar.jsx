@@ -18,7 +18,11 @@ export default function Navbar({ aiSpeaking, conversationActive, timeLeft, onEnd
     >
       <div className="navbar-brand">
         <div className="navbar-icon">
-          <Trees style={{ width: 20, height: 20, color: '#FDF6E3' }} />
+          <img 
+            src="/zubi-logo.svg" 
+            alt="Zubi Magical Forest" 
+            style={{ width: 40, height: 20, borderRadius: '6px' }}
+          />
         </div>
         <div className="navbar-brand-text">
           <span className="navbar-title">Zubi Magical Forest</span>
@@ -34,7 +38,7 @@ export default function Navbar({ aiSpeaking, conversationActive, timeLeft, onEnd
 
         {conversationActive && (
           <motion.span
-            className={`navbar-timer ${timeLeft <= 10 ? 'urgent' : ''}`}
+            className={`navbar-timer ${timeLeft <= 3 ? 'urgent' : timeLeft <= 10 ? 'warning' : ''}`}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             key="timer"

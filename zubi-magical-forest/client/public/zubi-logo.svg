@@ -1,0 +1,23 @@
+<svg width="80" height="40" viewBox="0 0 80 40" xmlns="http://www.w3.org/2000/svg">
+  <!-- Forest background -->
+  <rect width="80" height="40" rx="8" fill="#12221D"/>
+  
+  <!-- Trees silhouette -->
+  <path d="M 10 35 L 10 25 L 5 20 L 15 20 L 10 25 L 10 15 L 3 10 L 17 10 L 10 15 L 10 5 L 0 0 L 20 0 L 10 5" fill="#2F7A5F"/>
+  <path d="M 25 35 L 25 28 L 20 23 L 30 23 L 25 28 L 25 18 L 18 13 L 32 13 L 25 18 L 25 8 L 15 3 L 35 3 L 25 8" fill="#1a4d3a"/>
+  <path d="M 40 35 L 40 25 L 35 20 L 45 20 L 40 25 L 40 15 L 33 10 L 47 10 L 40 15" fill="#2F7A5F"/>
+  
+  <!-- Magical elements -->
+  <circle cx="55" cy="15" r="3" fill="#F4C95D" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="65" cy="10" r="2" fill="#F4C95D" opacity="0.6">
+    <animate attributeName="opacity" values="0.6;1;0.6" dur="2.5s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="70" cy="18" r="2.5" fill="#F4C95D" opacity="0.7">
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  
+  <!-- Zubi text -->
+  <text x="42" y="32" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#FDF6E3">ZUBI</text>
+</svg>

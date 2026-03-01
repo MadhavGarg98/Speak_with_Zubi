@@ -16,6 +16,8 @@ function App() {
   const [conversationActive, setConversationActive] = useState(false);
   const [voiceLevel, setVoiceLevel] = useState(0);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [showCorrectSweep, setShowCorrectSweep] = useState(false);
+  const [showSessionEndOverlay, setShowSessionEndOverlay] = useState(false);
 
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
@@ -131,7 +133,10 @@ function App() {
 
   const sendMessage = async (userText) => {
     const userMessage = { sender: "user", text: userText };
-    setMessages((prev) => [...prev, userMessage]);
+    
+    // Get current messages before updating state
+    const currentMessages = [...messages, userMessage];
+    setMessages(currentMessages);
     setProcessing(true);
 
     try {
@@ -140,9 +145,9 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userText,
-          history: messages.map((msg) => ({
-            role: msg.sender === "ai" ? "assistant" : "user",
-            content: msg.text,
+          messages: currentMessages.map((msg) => ({
+            sender: msg.sender,
+            text: msg.text,
           })),
         }),
       });
@@ -175,12 +180,8 @@ function App() {
     setTimeLeft(TOTAL_TIME);
     setMessages([]);
 
-    const welcomeMessage = {
-      sender: "ai",
-      text: "Namaste dost! Hello friend! What can you see in our magical forest?",
-    };
-    setMessages([welcomeMessage]);
-    speak(welcomeMessage.text);
+    // Let backend handle the welcome message
+    sendMessage(""); // Send empty message to get welcome from backend
   };
 
   const handleEndConversation = useCallback(() => {
@@ -189,6 +190,7 @@ function App() {
     setAiSpeaking(false);
     setHighlighted(null);
     setSessionEnded(true);
+    setShowSessionEndOverlay(true);
     stopAudioAnalyser();
     window.speechSynthesis.cancel();
 
@@ -197,6 +199,9 @@ function App() {
       text: "Thank you for exploring with me! Bye bye for now!",
     };
     setMessages((prev) => [...prev, goodbyeMessage]);
+    
+    // Hide overlay after animation
+    setTimeout(() => setShowSessionEndOverlay(false), 800);
   }, [stopAudioAnalyser]);
 
   const clearConversation = () => {
@@ -247,6 +252,18 @@ function App() {
     []
   );
 
+  // Generate floating golden dots
+  const floatingDots = useMemo(
+    () =>
+      Array.from({ length: 4 }, (_, i) => ({
+        id: i,
+        left: `${15 + Math.random() * 70}%`,
+        duration: `${12 + Math.random() * 8}s`,
+        delay: `${Math.random() * 15}s`,
+      })),
+    []
+  );
+
   // Fireflies
   const fireflies = useMemo(
     () =>
@@ -277,6 +294,19 @@ function App() {
             height: p.size,
             '--duration': p.duration,
             '--delay': p.delay,
+          }}
+        />
+      ))}
+
+      {/* Floating golden dots */}
+      {floatingDots.map((d) => (
+        <div
+          key={`dot-${d.id}`}
+          className="floating-dot"
+          style={{
+            left: d.left,
+            '--dot-duration': d.duration,
+            '--dot-delay': d.delay,
           }}
         />
       ))}
@@ -333,6 +363,15 @@ function App() {
           aiSpeaking={aiSpeaking}
           voiceLevel={voiceLevel}
         />
+      )}
+
+      {/* UX Micro-interactions */}
+      {showCorrectSweep && (
+        <div className="correct-answer-sweep" />
+      )}
+      
+      {showSessionEndOverlay && (
+        <div className="session-end-overlay" />
       )}
     </div>
   );
