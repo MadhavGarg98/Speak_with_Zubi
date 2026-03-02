@@ -7,7 +7,7 @@ import Navbar from "./components/Navbar";
 import { speak as voiceSpeak, cancelSpeech } from "./utils/voiceManager";
 
 const TOTAL_TIME = 60;
-const HIGHLIGHT_DURATION = 3000; // 3 seconds as specified
+const HIGHLIGHT_DURATION = 5000; // 5 seconds for better visibility
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -341,7 +341,7 @@ function App() {
   );
 
   return (
-    <div className={`app-root ${sessionDimmed ? "dimmed" : ""}`}>
+    <div className={`app-container ${sessionDimmed ? "dimmed" : ""}`}>
       {/* Cinematic background */}
       <div className="bg-cinematic" />
       <div className="bg-image-glow" />
@@ -397,26 +397,30 @@ function App() {
         onClear={clearConversation}
       />
 
-      {/* Main two-column grid */}
-      <main className="main-grid">
-        {/* Left Column: Forest Image */}
-        <ForestImage
-          highlighted={highlighted}
-          conversationActive={conversationActive}
-        />
+      {/* Main responsive layout */}
+      <div className="main-content">
+        {/* Left Panel: Forest Image */}
+        <div className="left-panel">
+          <ForestImage
+            highlighted={highlighted}
+            conversationActive={conversationActive}
+          />
+        </div>
 
-        {/* Right Column: Conversation Panel */}
-        <ConversationPanel
-          messages={messages}
-          isAiSpeaking={aiSpeaking}
-          isProcessing={processing}
-          timeRemaining={timeLeft}
-          conversationActive={conversationActive}
-          sessionEnded={sessionEnded}
-          onStart={startConversation}
-          onRestart={restartConversation}
-        />
-      </main>
+        {/* Right Panel: Conversation Panel */}
+        <div className="right-panel">
+          <ConversationPanel
+            messages={messages}
+            isAiSpeaking={aiSpeaking}
+            isProcessing={processing}
+            timeRemaining={timeLeft}
+            conversationActive={conversationActive}
+            sessionEnded={sessionEnded}
+            onStart={startConversation}
+            onRestart={restartConversation}
+          />
+        </div>
+      </div>
 
       {/* Floating Mic Orb */}
       <AnimatePresence>

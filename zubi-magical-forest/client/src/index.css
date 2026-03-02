@@ -48,17 +48,21 @@ body {
   overflow: hidden;
 }
 
-.app-root {
-  height: 100vh;
-  overflow: hidden;
+.app-container {
+  min-height: 100vh;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  background: #07140f;
+  overflow: hidden;
+  max-width: 1600px;
+  margin: auto;
   position: relative;
   transition: filter 1.2s ease;
 }
 
 /* Dimmed state for session ending */
-.app-root.dimmed {
+.app-container.dimmed {
   filter: brightness(0.85);
 }
 
@@ -397,18 +401,61 @@ body {
 }
 
 /* ============================================
-   MAIN LAYOUT
+   MAIN RESPONSIVE LAYOUT
    ============================================ */
 
-.main-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 32px;
-  padding: 32px;
-  height: calc(100vh - 72px);
+.main-content {
+  flex: 1;
+  display: flex;
+  min-height: 0;
   overflow: hidden;
   position: relative;
   z-index: 10;
+}
+
+.left-panel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  max-width: 1000px;
+}
+
+.right-panel {
+  width: 520px;
+  max-width: 100%;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Tablet responsive switch */
+@media (max-width: 1200px) {
+  .right-panel {
+    width: 480px;
+  }
+  
+  .left-panel {
+    max-width: 800px;
+  }
+}
+
+/* Mobile responsive switch */
+@media (max-width: 900px) {
+  .main-content {
+    flex-direction: column;
+  }
+
+  .left-panel {
+    padding: 1rem;
+    max-width: none;
+  }
+
+  .right-panel {
+    width: 100%;
+    padding: 1rem;
+  }
 }
 
 /* ============================================
@@ -425,10 +472,11 @@ body {
   perspective: 1200px;
 }
 
-.image-container {
+.image-wrapper {
   position: relative;
   width: 100%;
-  height: 100%;
+  max-width: 900px;
+  margin: auto;
   border-radius: 28px;
   overflow: hidden;
   box-shadow:
@@ -438,7 +486,7 @@ body {
   transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.image-container::before {
+.image-wrapper::before {
   content: '';
   position: absolute;
   inset: -20px;
@@ -451,45 +499,21 @@ body {
   pointer-events: none;
 }
 
-.image-container:hover {
+.image-wrapper:hover {
   transform: scale(1.01) translateZ(10px);
 }
 
-.image-portal-glow {
-  position: absolute;
-  inset: -40px;
-  background: radial-gradient(ellipse at center, rgba(244, 201, 93, 0.06), rgba(47, 122, 95, 0.04), transparent 60%);
-  filter: blur(35px);
-  z-index: -1;
-  animation: portalBreathing 5s ease-in-out infinite;
-  pointer-events: none;
-  transition: all 0.6s ease;
-}
-
-.image-portal-glow.active {
-  background: radial-gradient(ellipse at center, rgba(244, 201, 93, 0.1), rgba(47, 122, 95, 0.06), transparent 60%);
-}
-
-.image-portal-glow.intensified {
-  animation: portalIntensified 1.2s ease-out forwards;
-}
-
-@keyframes portalBreathing {
-  0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.04); }
-}
-
-@keyframes portalIntensified {
-  0% { opacity: 0.5; transform: scale(1); }
-  40% { opacity: 1; transform: scale(1.08); filter: blur(45px); }
-  100% { opacity: 0.5; transform: scale(1); }
-}
-
-.image-container img {
+.image-wrapper img {
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
   display: block;
+}
+
+.overlay-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
 }
 
 .image-mist-overlay {
@@ -521,41 +545,64 @@ body {
 }
 
 /* ============================================
-   MAGICAL HIGHLIGHT SYSTEM
+   MAGICAL HIGHLIGHT SYSTEM - RESPONSIVE
    ============================================ */
 
-.highlight-zone {
+.highlight-box {
   position: absolute;
-  transform: translate(-50%, -50%);
+  border-radius: 20px;
+  box-shadow: 0 0 40px rgba(244, 201, 93, 1), 0 0 80px rgba(244, 201, 93, 0.8);
+  animation: pulseGlow 2s ease-in-out infinite;
+  transition: all 0.4s ease;
   pointer-events: none;
-  z-index: 6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  transform: translate(-50%, -50%);
+  border: 2px solid rgba(244, 201, 93, 0.9);
+  background: rgba(244, 201, 93, 0.15);
 }
 
-.highlight-glow {
-  position: absolute;
-  inset: -20px;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(244, 201, 93, 0.25),
-    rgba(244, 201, 93, 0.08) 50%,
-    transparent 70%
-  );
-  border-radius: 50%;
-  filter: blur(8px);
+@keyframes pulseGlow {
+  0% {
+    box-shadow: 0 0 40px rgba(244, 201, 93, 0.6);
+    border-color: rgba(244, 201, 93, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 80px rgba(244, 201, 93, 1);
+    border-color: rgba(244, 201, 93, 1);
+  }
+  100% {
+    box-shadow: 0 0 40px rgba(244, 201, 93, 0.6);
+    border-color: rgba(244, 201, 93, 0.7);
+  }
 }
 
-.highlight-border {
+.image-portal-glow {
   position: absolute;
-  inset: 0;
-  border: 2px solid rgba(244, 201, 93, 0.5);
-  border-radius: 24px;
-  box-shadow:
-    0 0 20px rgba(244, 201, 93, 0.3),
-    0 0 40px rgba(244, 201, 93, 0.15),
-    inset 0 0 15px rgba(244, 201, 93, 0.08);
+  inset: -40px;
+  background: radial-gradient(ellipse at center, rgba(244, 201, 93, 0.06), rgba(47, 122, 95, 0.04), transparent 60%);
+  filter: blur(35px);
+  z-index: -1;
+  animation: portalBreathing 5s ease-in-out infinite;
+  pointer-events: none;
+  transition: all 0.6s ease;
+}
+
+.image-portal-glow.active {
+  background: radial-gradient(ellipse at center, rgba(244, 201, 93, 0.1), rgba(47, 122, 95, 0.06), transparent 60%);
+}
+
+.image-portal-glow.intensified {
+  animation: portalIntensified 1.2s ease-out forwards;
+}
+
+@keyframes portalBreathing {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.04); }
+}
+
+@keyframes portalIntensified {
+  0% { opacity: 0.5; transform: scale(1); }
+  40% { opacity: 1; transform: scale(1.08); filter: blur(45px); }
+  100% { opacity: 0.5; transform: scale(1); }
 }
 
 .highlight-label {
@@ -672,13 +719,13 @@ body {
   width: 50px;
   height: 50px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #f8d87a, #F4C95D, #d4a83a);
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 0 20px rgba(244, 201, 93, 0.3);
   flex-shrink: 0;
   position: relative;
+  overflow: hidden;
 }
 
 .panel-avatar::after {
@@ -787,17 +834,16 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #2F7A5F, #1a4d3a);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   box-shadow: 0 0 12px rgba(244, 201, 93, 0.3);
   border: 1px solid rgba(244, 201, 93, 0.2);
+  overflow: hidden;
 }
 
 .message-avatar-mini.user-avatar {
-  background: radial-gradient(circle at 35% 30%, var(--color-accent-gold), #d4a83a);
   box-shadow: 0 0 12px rgba(244, 201, 93, 0.2);
   border: 1px solid rgba(244, 201, 93, 0.15);
 }
@@ -1011,7 +1057,7 @@ body {
 
 .mic-orb-wrapper {
   position: fixed;
-  bottom: 36px;
+  bottom: 40px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 100;
@@ -1100,16 +1146,16 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at 35% 30%, #fbe3a0, #F4C95D, #d4a83a, #b8912e);
+  background: radial-gradient(circle at 35% 30%, #7c3aed, #6d28d9, #5b21b6, #4c1d95);
   box-shadow:
-    0 0 calc(40px + 40px * var(--glow-intensity, 0.2)) rgba(244, 201, 93, calc(0.3 + 0.4 * var(--glow-intensity, 0.2))),
-    0 0 calc(80px + 60px * var(--glow-intensity, 0.2)) rgba(244, 201, 93, calc(0.1 + 0.15 * var(--glow-intensity, 0.2))),
-    inset 0 2px 4px rgba(255, 255, 255, 0.25),
-    inset 0 -3px 6px rgba(0, 0, 0, 0.2);
+    0 0 calc(40px + 40px * var(--glow-intensity, 0.2)) rgba(124, 58, 237, calc(0.4 + 0.4 * var(--glow-intensity, 0.2))),
+    0 0 calc(80px + 60px * var(--glow-intensity, 0.2)) rgba(124, 58, 237, calc(0.15 + 0.2 * var(--glow-intensity, 0.2))),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3),
+    inset 0 -3px 6px rgba(0, 0, 0, 0.3);
   transition: background 0.3s cubic-bezier(0.22, 1, 0.36, 1),
               box-shadow 0.3s cubic-bezier(0.22, 1, 0.36, 1);
   outline: none;
-  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.4));
 }
 
 .mic-orb-btn.listening {
@@ -1273,7 +1319,7 @@ body {
 
 /* Mic icon inside orb */
 .orb-mic-icon {
-  color: #081410;
+  color: #ffffff;
   width: 28px;
   height: 28px;
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));

@@ -13,24 +13,24 @@ const ForestImage = memo(function ForestImage({ highlighted, conversationActive 
     }
   }, [highlighted]);
 
-  // Extended highlight positions with sizes for different objects
+  // Corrected percentage-based highlight positions for actual forest image
   const highlightPositions = {
-    deer: { top: "60%", left: "20%", width: 120, height: 100, label: "Deer" },
-    fox: { top: "70%", left: "45%", width: 80, height: 70, label: "Fox" },
-    boy: { top: "40%", left: "42%", width: 90, height: 110, label: "Boy" },
-    girl: { top: "55%", left: "55%", width: 80, height: 100, label: "Girl" },
-    owl: { top: "20%", left: "75%", width: 60, height: 60, label: "Owl" },
-    red_panda: { top: "55%", left: "35%", width: 70, height: 70, label: "Red Panda" },
-    raccoon: { top: "65%", left: "60%", width: 90, height: 70, label: "Raccoons" },
-    raccoons: { top: "65%", left: "60%", width: 90, height: 70, label: "Raccoons" },
-    hedgehog: { top: "75%", left: "15%", width: 60, height: 50, label: "Hedgehog" },
-    lanterns: { top: "40%", left: "30%", width: 100, height: 80, label: "Lanterns" },
-    house: { top: "15%", left: "50%", width: 130, height: 120, label: "Treehouse" },
-    treehouse: { top: "15%", left: "50%", width: 130, height: 120, label: "Treehouse" },
-    bridge: { top: "85%", left: "50%", width: 140, height: 60, label: "Bridge" },
-    waterfall: { top: "25%", left: "85%", width: 90, height: 120, label: "Waterfall" },
-    birds: { top: "30%", left: "40%", width: 100, height: 60, label: "Birds" },
-    mushrooms: { top: "80%", left: "70%", width: 80, height: 60, label: "Mushrooms" },
+    deer: { top: "64%", left: "18%", width: "25%", height: "30%", label: "Deer" },
+    fox: { top: "65%", left: "56%", width: "15%", height: "30%", label: "Fox" },
+    boy: { top: "38%", left: "56%", width: "10%", height: "20%", label: "Boy" },
+    girl: { top: "49%", left: "32%", width: "10%", height: "20%", label: "Girl" },
+    owl: { top: "37%", left: "63%", width: "8%", height: "15%", label: "Owl" },
+    "red panda": { top: "33%", left: "37%", width: "10%", height: "20%", label: "Red Panda" },
+    raccoon: { top: "15%", left: "64%", width: "12%", height: "12%", label: "Raccoons" },
+    raccoons: { top: "15%", left: "64%", width: "12%", height: "12%", label: "Raccoons" },
+    hedgehog: { top: "58%", left: "76%", width: "6%", height: "6%", label: "Hedgehog" },
+    lanterns: { top: "38%", left: "32%", width: "14%", height: "12%", label: "Lanterns" },
+    house: { top: "12%", left: "48%", width: "18%", height: "18%", label: "Treehouse" },
+    treehouse: { top: "12%", left: "35%", width: "50%", height: "50%", label: "Treehouse" },
+    "rope bridge": { top: "55%", left: "15%", width: "35%", height: "13%", label: "Bridge" },
+    waterfall: { top: "42%", left: "76%", width: "12%", height: "18%", label: "Waterfall" },
+    birds: { top: "30%", left: "22%", width: "16%", height: "20%", label: "Birds" },
+    "mushroom house": { top: "36%", left: "86%", width: "10%", height: "30%", label: "Mushrooms" },
   };
 
   // Ambient lanterns
@@ -49,7 +49,6 @@ const ForestImage = memo(function ForestImage({ highlighted, conversationActive 
 
   return (
     <motion.div
-      className="image-panel"
       initial={{ opacity: 0, x: -40 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
@@ -61,13 +60,13 @@ const ForestImage = memo(function ForestImage({ highlighted, conversationActive 
         }`}
       />
 
-      <div className="image-container">
+      <div className="image-wrapper">
         <img
           src="/magical-forest-scene.jpg"
           alt="A magical enchanted forest scene with animals, lanterns, treehouse, mushrooms and a waterfall"
           crossOrigin="anonymous"
         />
-
+        
         {/* Ambient mist overlay */}
         <div className="image-mist-overlay" />
 
@@ -90,65 +89,41 @@ const ForestImage = memo(function ForestImage({ highlighted, conversationActive 
           />
         ))}
 
-        {/* Magical highlight overlay for identified objects */}
-        <AnimatePresence>
-          {highlightData && (
-            <motion.div
-              className="highlight-zone"
-              initial={{ opacity: 0, scale: 0.7 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 1.15 }}
-              transition={{
-                duration: 0.5,
-                ease: [0.22, 1, 0.36, 1],
-              }}
-              style={{
-                top: highlightData.top,
-                left: highlightData.left,
-                width: highlightData.width,
-                height: highlightData.height,
-              }}
-            >
-              {/* Radial golden glow */}
+        {/* Overlay layer for highlights - positioned relative to image */}
+        <div className="overlay-layer">
+          {/* Magical highlight overlay for identified objects */}
+          <AnimatePresence>
+            {highlightData && (
               <motion.div
-                className="highlight-glow"
-                animate={{
-                  opacity: [0.6, 0.9, 0.6],
-                  scale: [1, 1.02, 1],
-                }}
+                className="highlight-box"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 1.2 }}
                 transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
+                  duration: 0.4,
+                  ease: [0.22, 1, 0.36, 1],
                 }}
-              />
-
-              {/* Soft golden border */}
-              <motion.div
-                className="highlight-border"
-                animate={{
-                  opacity: [0.5, 0.8, 0.5],
+                style={{
+                  top: highlightData.top,
+                  left: highlightData.left,
+                  width: highlightData.width,
+                  height: highlightData.height,
                 }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                }}
-              />
-
-              {/* Label tooltip */}
-              <motion.div
-                className="highlight-label"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ delay: 0.2, duration: 0.35 }}
               >
-                {highlightData.label}
+                {/* Label tooltip */}
+                <motion.div
+                  className="highlight-label"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ delay: 0.2, duration: 0.35 }}
+                >
+                  {highlightData.label}
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            )}
+          </AnimatePresence>
+        </div>
 
         <SparkleEffect active={!!highlighted} />
       </div>
