@@ -39,9 +39,9 @@ const ConversationPanel = ({
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <div className={`panel-avatar ${isAiSpeaking ? 'ai-speaking' : ''}`}>
             <img 
-              src="/blue-elephant-avatar.svg" 
-              alt="Zubi Buddy" 
-              style={{ width: 36, height: 36, borderRadius: '50%' }}
+              src="/zubi-avatar-dark.svg" 
+              alt="Zubi" 
+              style={{ width: 50, height: 50, borderRadius: '50%' }}
             />
           </div>
           <div className="panel-info">
@@ -133,7 +133,7 @@ const ConversationPanel = ({
                   {message.sender === 'ai' && (
                     <div className="message-avatar-mini">
                       <img 
-                        src="/blue-elephant-avatar.svg" 
+                        src="/zubi-avatar-dark.svg" 
                         alt="Zubi" 
                         style={{ width: 32, height: 32, borderRadius: '50%' }}
                       />
@@ -164,7 +164,7 @@ const ConversationPanel = ({
               >
                 <div className="message-avatar-mini">
                   <img 
-                    src="/blue-elephant-avatar.svg" 
+                    src="/zubi-avatar-dark.svg" 
                     alt="Zubi" 
                     style={{ width: 32, height: 32, borderRadius: '50%' }}
                   />

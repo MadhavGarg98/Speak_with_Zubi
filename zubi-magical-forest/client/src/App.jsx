@@ -21,6 +21,7 @@ function App() {
 
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
+  const sessionStartRef = useRef(null);
   const audioContextRef = useRef(null);
   const analyserRef = useRef(null);
   const animFrameRef = useRef(null);
@@ -122,9 +123,14 @@ function App() {
     setVoiceLevel(0);
   }, []);
 
+  const cleanTextForSpeech = (text) => {
+    return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
+  };
+
   const speak = (text) => {
     setAiSpeaking(true);
-    const utterance = new SpeechSynthesisUtterance(text);
+    const cleanedText = cleanTextForSpeech(text);
+    const utterance = new SpeechSynthesisUtterance(cleanedText);
     utterance.lang = "en-IN";
     utterance.rate = 0.9;
     utterance.onend = () => setAiSpeaking(false);
@@ -139,6 +145,10 @@ function App() {
     setMessages(currentMessages);
     setProcessing(true);
 
+    // Calculate session duration
+    const sessionDuration = sessionStartRef.current ? Date.now() - sessionStartRef.current : 0;
+    const shouldEndSession = sessionDuration > 60000; // 60 seconds
+
     try {
       const response = await fetch("http://localhost:3001/chat", {
         method: "POST",
@@ -149,6 +159,7 @@ function App() {
             sender: msg.sender,
             text: msg.text,
           })),
+          endSession: shouldEndSession
         }),
       });
 
@@ -159,6 +170,14 @@ function App() {
       if (data.tool) {
         setHighlighted(data.tool.target);
         setTimeout(() => setHighlighted(null), 1500);
+      }
+
+      // Handle graceful session ending
+      if (data.end) {
+        setSessionEnded(true);
+        setShowSessionEndOverlay(true);
+        setTimeout(() => setShowSessionEndOverlay(false), 800);
+        return; // Don't speak goodbye message, let frontend handle it
       }
 
       speak(data.text);
@@ -179,9 +198,38 @@ function App() {
     setSessionEnded(false);
     setTimeLeft(TOTAL_TIME);
     setMessages([]);
+    sessionStartRef.current = Date.now(); // Track session start time
 
-    // Let backend handle the welcome message
-    sendMessage(""); // Send empty message to get welcome from backend
+    // Send welcome message request without adding user message
+    fetchWelcomeMessage();
+  };
+
+  const fetchWelcomeMessage = async () => {
+    setProcessing(true);
+    try {
+      const response = await fetch("http://localhost:3001/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "",
+          messages: [] // Send empty array to trigger welcome
+        }),
+      });
+
+      const data = await response.json();
+      const welcomeMessage = { sender: "ai", text: data.text };
+      setMessages([welcomeMessage]);
+      speak(data.text);
+    } catch {
+      const errorMessage = {
+        sender: "ai",
+        text: "Oops! Something went wrong. Can you try again?",
+      };
+      setMessages([errorMessage]);
+      speak(errorMessage.text);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleEndConversation = useCallback(() => {
@@ -194,15 +242,19 @@ function App() {
     stopAudioAnalyser();
     window.speechSynthesis.cancel();
 
+    // Use the same graceful goodbye as backend
     const goodbyeMessage = {
       sender: "ai",
-      text: "Thank you for exploring with me! Bye bye for now!",
+      text: "That was wonderful, dost 🌟\n\nTumne jungle ko bahut dhyaan se dekha.\nYou explored it like a true forest friend.\n\nOur magical adventure ends for now…\nBut don't worry — a new adventure is waiting for you.",
     };
     setMessages((prev) => [...prev, goodbyeMessage]);
     
+    // Speak the cleaned goodbye message
+    speak(goodbyeMessage.text);
+    
     // Hide overlay after animation
     setTimeout(() => setShowSessionEndOverlay(false), 800);
-  }, [stopAudioAnalyser]);
+  }, [stopAudioAnalyser, speak]);
 
   const clearConversation = () => {
     window.speechSynthesis.cancel();
