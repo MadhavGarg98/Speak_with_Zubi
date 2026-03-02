@@ -1,10 +1,13 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { AnimatePresence } from "framer-motion";
 import ForestImage from "./components/ForestImage";
 import ConversationPanel from "./components/ConversationPanel";
 import MicOrb from "./components/MicOrb";
 import Navbar from "./components/Navbar";
+import { speak as voiceSpeak, cancelSpeech } from "./utils/voiceManager";
 
 const TOTAL_TIME = 60;
+const HIGHLIGHT_DURATION = 3000; // 3 seconds as specified
 
 function App() {
   const [messages, setMessages] = useState([]);
@@ -16,8 +19,8 @@ function App() {
   const [conversationActive, setConversationActive] = useState(false);
   const [voiceLevel, setVoiceLevel] = useState(0);
   const [sessionEnded, setSessionEnded] = useState(false);
-  const [showCorrectSweep, setShowCorrectSweep] = useState(false);
   const [showSessionEndOverlay, setShowSessionEndOverlay] = useState(false);
+  const [sessionDimmed, setSessionDimmed] = useState(false);
 
   const recognitionRef = useRef(null);
   const timerRef = useRef(null);
@@ -26,6 +29,7 @@ function App() {
   const analyserRef = useRef(null);
   const animFrameRef = useRef(null);
   const streamRef = useRef(null);
+  const highlightTimerRef = useRef(null);
 
   // Timer logic
   useEffect(() => {
@@ -67,8 +71,12 @@ function App() {
       };
     }
 
+    // Preload voices for the voice manager
+    window.speechSynthesis.getVoices();
+
     return () => {
       stopAudioAnalyser();
+      cancelSpeech();
     };
   }, []);
 
@@ -77,7 +85,8 @@ function App() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
-      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const audioContext = new (window.AudioContext ||
+        window.webkitAudioContext)();
       audioContextRef.current = audioContext;
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = 256;
@@ -90,19 +99,16 @@ function App() {
 
       const tick = () => {
         analyser.getByteFrequencyData(dataArray);
-        // Compute average volume from frequency data
         let sum = 0;
         for (let i = 0; i < dataArray.length; i++) {
           sum += dataArray[i];
         }
         const avg = sum / dataArray.length;
-        // Normalize to 0-1
         setVoiceLevel(Math.min(avg / 128, 1));
         animFrameRef.current = requestAnimationFrame(tick);
       };
       tick();
     } catch {
-      // Mic access denied
       setVoiceLevel(0);
     }
   }, []);
@@ -117,37 +123,42 @@ function App() {
       audioContextRef.current = null;
     }
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach(t => t.stop());
+      streamRef.current.getTracks().forEach((t) => t.stop());
       streamRef.current = null;
     }
     setVoiceLevel(0);
   }, []);
 
-  const cleanTextForSpeech = (text) => {
-    return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, '');
-  };
-
-  const speak = (text) => {
+  // Intelligent speak function using voice manager
+  const speakText = useCallback((text) => {
     setAiSpeaking(true);
-    const cleanedText = cleanTextForSpeech(text);
-    const utterance = new SpeechSynthesisUtterance(cleanedText);
-    utterance.lang = "en-IN";
-    utterance.rate = 0.9;
-    utterance.onend = () => setAiSpeaking(false);
-    window.speechSynthesis.speak(utterance);
-  };
+    voiceSpeak(text, {
+      onEnd: () => setAiSpeaking(false),
+    });
+  }, []);
+
+  // Highlight with auto-fade after 3 seconds
+  const triggerHighlight = useCallback((target) => {
+    if (highlightTimerRef.current) {
+      clearTimeout(highlightTimerRef.current);
+    }
+    setHighlighted(target);
+    highlightTimerRef.current = setTimeout(() => {
+      setHighlighted(null);
+      highlightTimerRef.current = null;
+    }, HIGHLIGHT_DURATION);
+  }, []);
 
   const sendMessage = async (userText) => {
     const userMessage = { sender: "user", text: userText };
-    
-    // Get current messages before updating state
     const currentMessages = [...messages, userMessage];
     setMessages(currentMessages);
     setProcessing(true);
 
-    // Calculate session duration
-    const sessionDuration = sessionStartRef.current ? Date.now() - sessionStartRef.current : 0;
-    const shouldEndSession = sessionDuration > 60000; // 60 seconds
+    const sessionDuration = sessionStartRef.current
+      ? Date.now() - sessionStartRef.current
+      : 0;
+    const shouldEndSession = sessionDuration > 60000;
 
     try {
       const response = await fetch("http://localhost:3001/chat", {
@@ -159,7 +170,7 @@ function App() {
             sender: msg.sender,
             text: msg.text,
           })),
-          endSession: shouldEndSession
+          endSession: shouldEndSession,
         }),
       });
 
@@ -167,27 +178,25 @@ function App() {
       const aiMessage = { sender: "ai", text: data.text };
       setMessages((prev) => [...prev, aiMessage]);
 
-      if (data.tool) {
-        setHighlighted(data.tool.target);
-        setTimeout(() => setHighlighted(null), 1500);
+      // Handle highlight via tool call
+      if (data.tool && data.tool.target) {
+        triggerHighlight(data.tool.target);
       }
 
-      // Handle graceful session ending
+      // Handle graceful session ending from backend
       if (data.end) {
-        setSessionEnded(true);
-        setShowSessionEndOverlay(true);
-        setTimeout(() => setShowSessionEndOverlay(false), 800);
-        return; // Don't speak goodbye message, let frontend handle it
+        handleEndConversation();
+        return;
       }
 
-      speak(data.text);
+      speakText(data.text);
     } catch {
       const errorMessage = {
         sender: "ai",
         text: "Oops! Something went wrong. Can you try again?",
       };
       setMessages((prev) => [...prev, errorMessage]);
-      speak(errorMessage.text);
+      speakText(errorMessage.text);
     } finally {
       setProcessing(false);
     }
@@ -196,11 +205,10 @@ function App() {
   const startConversation = () => {
     setConversationActive(true);
     setSessionEnded(false);
+    setSessionDimmed(false);
     setTimeLeft(TOTAL_TIME);
     setMessages([]);
-    sessionStartRef.current = Date.now(); // Track session start time
-
-    // Send welcome message request without adding user message
+    sessionStartRef.current = Date.now();
     fetchWelcomeMessage();
   };
 
@@ -212,21 +220,21 @@ function App() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: "",
-          messages: [] // Send empty array to trigger welcome
+          messages: [],
         }),
       });
 
       const data = await response.json();
       const welcomeMessage = { sender: "ai", text: data.text };
       setMessages([welcomeMessage]);
-      speak(data.text);
+      speakText(data.text);
     } catch {
       const errorMessage = {
         sender: "ai",
         text: "Oops! Something went wrong. Can you try again?",
       };
       setMessages([errorMessage]);
-      speak(errorMessage.text);
+      speakText(errorMessage.text);
     } finally {
       setProcessing(false);
     }
@@ -237,27 +245,28 @@ function App() {
     setListening(false);
     setAiSpeaking(false);
     setHighlighted(null);
-    setSessionEnded(true);
-    setShowSessionEndOverlay(true);
+    setSessionDimmed(true);
     stopAudioAnalyser();
-    window.speechSynthesis.cancel();
+    cancelSpeech();
 
-    // Use the same graceful goodbye as backend
+    // Graceful goodbye
     const goodbyeMessage = {
       sender: "ai",
-      text: "That was wonderful, dost 🌟\n\nTumne jungle ko bahut dhyaan se dekha.\nYou explored it like a true forest friend.\n\nOur magical adventure ends for now…\nBut don't worry — a new adventure is waiting for you.",
+      text: "That was wonderful, dost.\n\nTumne jungle ko bahut dhyaan se dekha.\nYou explored it like a true forest friend.\n\nOur magical adventure ends for now...\nBut a new adventure is waiting for you.",
     };
     setMessages((prev) => [...prev, goodbyeMessage]);
-    
-    // Speak the cleaned goodbye message
-    speak(goodbyeMessage.text);
-    
-    // Hide overlay after animation
-    setTimeout(() => setShowSessionEndOverlay(false), 800);
-  }, [stopAudioAnalyser, speak]);
+    speakText(goodbyeMessage.text);
+
+    // Dimming + session end after a brief moment
+    setShowSessionEndOverlay(true);
+    setTimeout(() => {
+      setShowSessionEndOverlay(false);
+      setSessionEnded(true);
+    }, 1500);
+  }, [stopAudioAnalyser, speakText]);
 
   const clearConversation = () => {
-    window.speechSynthesis.cancel();
+    cancelSpeech();
     setConversationActive(false);
     setListening(false);
     setAiSpeaking(false);
@@ -265,11 +274,13 @@ function App() {
     setMessages([]);
     setTimeLeft(TOTAL_TIME);
     setSessionEnded(false);
+    setSessionDimmed(false);
     stopAudioAnalyser();
   };
 
   const restartConversation = () => {
     setSessionEnded(false);
+    setSessionDimmed(false);
     setMessages([]);
     startConversation();
   };
@@ -330,7 +341,7 @@ function App() {
   );
 
   return (
-    <div className="app-root">
+    <div className={`app-root ${sessionDimmed ? "dimmed" : ""}`}>
       {/* Cinematic background */}
       <div className="bg-cinematic" />
       <div className="bg-image-glow" />
@@ -339,13 +350,13 @@ function App() {
       {particles.map((p) => (
         <div
           key={p.id}
-          className={`particle ${p.glow ? 'particle-glow' : ''}`}
+          className={`particle ${p.glow ? "particle-glow" : ""}`}
           style={{
             left: p.left,
             width: p.size,
             height: p.size,
-            '--duration': p.duration,
-            '--delay': p.delay,
+            "--duration": p.duration,
+            "--delay": p.delay,
           }}
         />
       ))}
@@ -357,8 +368,8 @@ function App() {
           className="floating-dot"
           style={{
             left: d.left,
-            '--dot-duration': d.duration,
-            '--dot-delay': d.delay,
+            "--dot-duration": d.duration,
+            "--dot-delay": d.delay,
           }}
         />
       ))}
@@ -371,8 +382,8 @@ function App() {
           style={{
             left: f.left,
             top: f.top,
-            '--ff-duration': f.duration,
-            '--ff-delay': f.delay,
+            "--ff-duration": f.duration,
+            "--ff-delay": f.delay,
           }}
         />
       ))}
@@ -389,7 +400,10 @@ function App() {
       {/* Main two-column grid */}
       <main className="main-grid">
         {/* Left Column: Forest Image */}
-        <ForestImage highlighted={highlighted} conversationActive={conversationActive} />
+        <ForestImage
+          highlighted={highlighted}
+          conversationActive={conversationActive}
+        />
 
         {/* Right Column: Conversation Panel */}
         <ConversationPanel
@@ -404,27 +418,27 @@ function App() {
         />
       </main>
 
-      {/* Floating Mic Orb - visible after conversation starts */}
-      {conversationActive && (
-        <MicOrb
-          listening={listening}
-          onClick={toggleListening}
-          duration={TOTAL_TIME}
-          timeLeft={timeLeft}
-          isActive={conversationActive}
-          aiSpeaking={aiSpeaking}
-          voiceLevel={voiceLevel}
-        />
-      )}
+      {/* Floating Mic Orb */}
+      <AnimatePresence>
+        {conversationActive && !sessionEnded && (
+          <MicOrb
+            listening={listening}
+            onClick={toggleListening}
+            duration={TOTAL_TIME}
+            timeLeft={timeLeft}
+            isActive={conversationActive}
+            aiSpeaking={aiSpeaking}
+            voiceLevel={voiceLevel}
+          />
+        )}
+      </AnimatePresence>
 
-      {/* UX Micro-interactions */}
-      {showCorrectSweep && (
-        <div className="correct-answer-sweep" />
-      )}
-      
-      {showSessionEndOverlay && (
-        <div className="session-end-overlay" />
-      )}
+      {/* Session end dim overlay */}
+      <AnimatePresence>
+        {showSessionEndOverlay && (
+          <div className="session-end-overlay" />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
