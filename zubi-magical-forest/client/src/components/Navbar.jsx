@@ -19,9 +19,9 @@ export default function Navbar({ aiSpeaking, conversationActive, timeLeft, onEnd
       <div className="navbar-brand">
         <div className="navbar-icon">
           <img 
-            src="/zubi-logo.svg" 
+            src="/zubi-logo-new.svg" 
             alt="Zubi Magical Forest" 
-            style={{ width: 40, height: 20, borderRadius: '6px' }}
+            style={{ width: 36, height: 36, borderRadius: '8px' }}
           />
         </div>
         <div className="navbar-brand-text">

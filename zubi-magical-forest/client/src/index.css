@@ -422,7 +422,7 @@ body {
 
 .main-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
+  grid-template-columns: 1.2fr 1fr;
   gap: 32px;
   padding: 32px;
   height: calc(100vh - 72px);
@@ -605,7 +605,7 @@ body {
   box-shadow:
     0 8px 48px rgba(0, 0, 0, 0.35),
     inset 0 1px 0 rgba(244, 201, 93, 0.04);
-  padding: 24px;
+  padding: 20px;
   position: relative;
   overflow: hidden;
 }
@@ -624,7 +624,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(244, 201, 93, 0.06);
   flex-shrink: 0;
 }
@@ -723,8 +723,8 @@ body {
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 20px 0;
+  gap: 16px;
+  padding: 12px 0;
   min-height: 0;
 }
 
@@ -764,12 +764,13 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #f8d87a, #F4C95D);
+  background: radial-gradient(circle at 35% 30%, #2F7A5F, #1a4d3a);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: 0 0 8px rgba(244, 201, 93, 0.2);
+  box-shadow: 0 0 12px rgba(244, 201, 93, 0.3);
+  border: 1px solid rgba(244, 201, 93, 0.2);
 }
 
 .message-bubble {
@@ -953,11 +954,11 @@ body {
 .panel-footer-hint {
   text-align: center;
   color: rgba(244, 201, 93, 0.25);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.3px;
   flex-shrink: 0;
-  padding-top: 12px;
+  padding-top: 8px;
   border-top: 1px solid rgba(244, 201, 93, 0.04);
 }
 
@@ -1053,6 +1054,18 @@ body {
 @keyframes labelPulse {
   0%, 100% { opacity: 0.7; }
   50% { opacity: 1; }
+}
+
+.navbar-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(244, 201, 93, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
 }
 
 .mic-orb-btn {
