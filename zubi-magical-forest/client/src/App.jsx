@@ -5,6 +5,7 @@ import ConversationPanel from "./components/ConversationPanel";
 import MicOrb from "./components/MicOrb";
 import Navbar from "./components/Navbar";
 import { speak as voiceSpeak, cancelSpeech } from "./utils/voiceManager";
+import { apiCall } from "./utils/apiConfig";
 
 const TOTAL_TIME = 60;
 const HIGHLIGHT_DURATION = 5000; // 5 seconds for better visibility
@@ -161,9 +162,8 @@ function App() {
     const shouldEndSession = sessionDuration > 60000;
 
     try {
-      const response = await fetch("http://localhost:3001/chat", {
+      const response = await apiCall("/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: userText,
           messages: currentMessages.map((msg) => ({
@@ -215,9 +215,8 @@ function App() {
   const fetchWelcomeMessage = async () => {
     setProcessing(true);
     try {
-      const response = await fetch("http://localhost:3001/chat", {
+      const response = await apiCall("/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: "",
           messages: [],
